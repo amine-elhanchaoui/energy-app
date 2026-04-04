@@ -36,4 +36,8 @@ class User extends Authenticatable
     {
         return $this->hasMany(Meter::class);
     }
+    public function city()
+    {
+        return $this->belongsTo(City::class);
+    }
 }

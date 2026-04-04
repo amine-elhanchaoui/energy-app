@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\MeterController;
 use App\Http\Controllers\API\ReadingController;
+use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
 
 // public routes
@@ -17,15 +18,37 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
     
-    // route of MeterController and ReadingController
-    //Route::apiResource('meters', MeterController::class);
+    // Routes for Meters - CRUD
+    Route::apiResource('meters', MeterController::class);
     
-   
-    //Route::apiResource('readings', ReadingController::class);
+    // Custom meter endpoints for citizen/user
+    Route::get('/my-meters', [MeterController::class, 'getUserMeters']);
+    Route::get('/meters-with-readings', [MeterController::class, 'getMetersWithReadings']);
     
+    // Meter analytics and comparisons
+    Route::get('/meters/{meterId}/monthly-data', [MeterController::class, 'getMonthlyData']);
+    Route::get('/meters/{meterId}/compare-months', [MeterController::class, 'compareMonths']);
+    Route::get('/meters/{meterId}/average-comparison', [MeterController::class, 'getAverageComparison']);
     
-    // Route::middleware('role:admin')->group(function () {
-    //     Route::get('/admin/users', [AdminController::class, 'getAllUsers']);
-    //     Route::get('/admin/statistics', [AdminController::class, 'getGlobalStatistics']);
-    // });
+    // Routes for Readings - CRUD
+    Route::apiResource('readings', ReadingController::class);
+    
+    // Custom reading endpoints
+    Route::get('/meters/{meterId}/readings', [ReadingController::class, 'getMeterReadings']);
+    Route::post('/meters/{meterId}/readings/by-date-range', [ReadingController::class, 'getReadingsByDateRange']);
+    
+    // Admin routes
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/admin/users', [AdminController::class, 'getAllUsers']);
+        Route::post('/admin/users', [AdminController::class, 'createUser']);
+        Route::put('/admin/users/{id}', [AdminController::class, 'updateUser']);
+        Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser']);
+        Route::patch('/admin/users/{id}/toggle-status', [AdminController::class, 'toggleUserStatus']);
+        
+        Route::get('/admin/statistics', [AdminController::class, 'GlobalStatistics']);
+        Route::get('/admin/consumption-stats', [MeterController::class, 'getConsumptionStatistics']);
+        
+        Route::get('/admin/readings/export-csv', [AdminController::class, 'exportReadingsCsv']);
+        Route::get('/admin/readings/export-pdf', [AdminController::class, 'exportStatsPdf']);
+    });
 });
