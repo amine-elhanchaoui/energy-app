@@ -29,8 +29,8 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => bcrypt('password'),
-            'city' => 'Casablanca',
-            'neighborhood' => 'Maarif',
+            'city_id' => 1, 
+            'quartier' => 'Maarif',
             'house_number' => '123',
         ]);
 

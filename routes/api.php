@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 // public routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/cities', [AuthController::class, 'getCities']);
 
 // private routes
 Route::middleware('auth:sanctum')->group(function () {

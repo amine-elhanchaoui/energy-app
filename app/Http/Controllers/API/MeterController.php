@@ -8,6 +8,7 @@ use App\Models\Reading;
 use App\Models\MonthlyConsumption;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -20,7 +21,7 @@ class MeterController extends Controller
      */
     public function index()
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         if ($user->hasRole('admin')) {
             // get all meters with user and quartier info, and count of readings and monthly consumptions
@@ -49,7 +50,7 @@ class MeterController extends Controller
      */
     public function getUserMeters()
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         $meters = Meter::where('user_id', $user->id)
             ->with([
@@ -153,7 +154,7 @@ class MeterController extends Controller
 
         // If user_id not provided, use authenticated user's ID (for citizens)
         if (!isset($validated['user_id'])) {
-            $validated['user_id'] = auth()->id();
+            $validated['user_id'] = Auth::id();
         }
 
         $meter = Meter::create($validated);
@@ -244,12 +245,15 @@ class MeterController extends Controller
         $currentDate = Carbon::now();
 
         // we use copy method to create a new instance of Carbon with the same date, so we can modify it without affecting the original $currentDate variable. This is important because we need to use $currentDate later to get the current month data, and if we modify it directly, it will affect that query as well.
+        // subMonth method subtracts one month from the date, so we get the previous month date. For example, if currentDate is 2026-04-15, then previousDate will be 2026-03-15. We only care about the year and month part of the date for our queries, so the day part does not matter.
         $previousDate = $currentDate->copy()->subMonth();
         
 
 
 
-        // i must understand the rest of this code with ChekRole.php 
+         
+
+        // whereYear = Year(month) and month column in databse is a complete date (like 2026-04-01) but we only care about the year and month part, so we use whereYear and whereMonth to filter by year and month separately. This way we can get the data for the current month and previous month without worrying about the day part of the date.
         $currentMonth = MonthlyConsumption::where('meter_id', $meterId)
             ->whereYear('month', $currentDate->year)
             ->whereMonth('month', $currentDate->month)
@@ -286,6 +290,7 @@ class MeterController extends Controller
             'comparison' => [
                 'difference' => $difference,
                 'percentage_change' => round($percentageChange, 2),
+                // increased(positive difference), decreased(negative difference), or stable(zero difference)
                 'trend' => $difference > 0 ? 'increased' : ($difference < 0 ? 'decreased' : 'stable'),
             ],
         ]);
@@ -310,10 +315,12 @@ class MeterController extends Controller
 
         // Get average of same type meters for current month
         $averageConsumption = MonthlyConsumption::join('meters', 'monthly_consumptions.meter_id', '=', 'meters.id')
+                // here we care about the type of the meter, because we want to compare with similar meters, for example if this meter is electricity, we want to compare with other electricity meters, not water or gas meters, because they have different units and consumption patterns.
             ->where('meters.type', $meter->type)
             ->whereYear('monthly_consumptions.month', $currentDate->year)
             ->whereMonth('monthly_consumptions.month', $currentDate->month)
             ->avg('monthly_consumptions.consumption_value');
+            // this query joins the monthly_consumptions table with the meters table to filter by meter type, and then it calculates the average consumption value for the current month for all meters of the same type.
 
         $averageConsumption = $averageConsumption ?? 0;
         $difference = $currentValue - $averageConsumption;
@@ -341,7 +348,7 @@ class MeterController extends Controller
      */
     public function getMetersWithReadings()
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         $meters = Meter::where('user_id', $user->id)
             ->with([
@@ -353,6 +360,7 @@ class MeterController extends Controller
                 }
             ])
             ->get()
+            // map take each meter and transform it to include only the necessary data for the dashboard, like latest reading value and date, count of readings, and monthly consumption data for the last 6 months.
             ->map(function ($meter) {
                 return [
                     'id' => $meter->id,
@@ -382,7 +390,7 @@ class MeterController extends Controller
      */
     public function getConsumptionStatistics()
     {
-        auth()->user()->hasRole('admin') || abort(403);
+        Auth::user()->hasRole('admin') || abort(403);
 
         $currentDate = Carbon::now();
         $previousDate = $currentDate->copy()->subMonth();
@@ -392,13 +400,17 @@ class MeterController extends Controller
             'meters_by_type' => Meter::selectRaw('type, COUNT(*) as count')
                 ->groupBy('type')
                 ->get(),
+            // total consumption for all types for current month
             'current_month_consumption' => MonthlyConsumption::whereYear('month', $currentDate->year)
                 ->whereMonth('month', $currentDate->month)
                 ->sum('consumption_value'),
+            // this also but for previous month
             'previous_month_consumption' => MonthlyConsumption::whereYear('month', $previousDate->year)
                 ->whereMonth('month', $previousDate->month)
                 ->sum('consumption_value'),
+            
             'average_monthly_consumption' => MonthlyConsumption::avg('consumption_value'),
+            // total consumption by type for current month
             'consumption_by_type' => MonthlyConsumption::join('meters', 'monthly_consumptions.meter_id', '=', 'meters.id')
                 ->whereYear('monthly_consumptions.month', $currentDate->year)
                 ->whereMonth('monthly_consumptions.month', $currentDate->month)

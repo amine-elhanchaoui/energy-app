@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use App\Models\City;
 
 class AuthController extends Controller
 {
@@ -99,7 +100,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'تم تسجيل الخروج بنجاح',
+            'message' => 'logged out successfully',
         ]);
     }
 
@@ -142,5 +143,10 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'successfully changed password',
         ]);
+    }
+
+    public function getCities(){
+        $cities = City::all();
+        return response()->json($cities);
     }
 }

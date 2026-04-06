@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 class CheckRole
 {
     public function handle(Request $request, Closure $next, ...$roles)
+    // ...$roles means that we can pass multiple roles to this middleware, and it will check if the user has any of the specified roles.
     {
         $user = $request->user();
         
