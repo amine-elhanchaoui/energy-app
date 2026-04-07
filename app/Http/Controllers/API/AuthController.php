@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Quartier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -20,7 +21,9 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6|confirmed',
-            'location' => 'required|string|max:255',
+            'quartier' => 'required|string|max:255',
+            'house_number' => 'required|string|max:255',
+            'city_id' => 'nullable|exists:cities,id',
         ]);
 
 
@@ -28,7 +31,9 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'location' => $request->location,
+            'quartier' => $request->quartier,
+            'house_number' => $request->house_number,
+            'city_id' => $request->city_id ?? null,
         ]);
 
         // give the user the "citoyen" role by default (French spelling from seeder)
@@ -148,5 +153,18 @@ class AuthController extends Controller
     public function getCities(){
         $cities = City::all();
         return response()->json($cities);
+    }
+
+    public function getQuartiers(Request $request){
+        $request->validate([
+            'city_id' => 'nullable|exists:cities,id',
+        ]);
+        // when method means that if the city_id is present in the request, we will filter the quartiers by that city_id, otherwise we will return all the quartiers,
+        // this way we can use the same endpoint to get all the quartiers or to get the quartiers of a specific city, depending on whether the city_id is provided in the request or not.
+        $quartiers = Quartier::when($request->city_id, function ($query, $cityId) {
+            return $query->where('city_id', $cityId);
+        })->get();
+
+        return response()->json($quartiers);
     }
 }

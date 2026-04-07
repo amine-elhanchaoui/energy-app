@@ -42,7 +42,7 @@ class AdminController extends Controller
             'quartier'=>$validated['quartier'],
             'house_number'=>$validated['house_number'],
         ]);
-
+        $user->assignRole('citoyen');
         return response()->json($user, 201);
     }
 
@@ -87,18 +87,20 @@ class AdminController extends Controller
     public function GlobalStatistics() {
         $this->authorize('view_global_dashboard');
 
-        $consumptionByCity = User::select('city')
-            ->join('meters','users.id','=','meters.user_id')
-            ->join('readings','meters.id','=','readings.meter_id')
-            ->groupBy('city')
-            ->selectRaw('city, SUM(readings.value) as total_consumption')
+        $consumptionByCity = DB::table('readings')
+            ->join('meters', 'readings.meter_id', '=', 'meters.id')
+            ->join('quartiers', 'meters.quartier_id', '=', 'quartiers.id')
+            ->join('cities', 'quartiers.city_id', '=', 'cities.id')
+            ->groupBy('cities.id', 'cities.name')
+            ->selectRaw('cities.name as city, SUM(readings.value) as total_consumption')
             ->get();
 
-        $consumptionByQuartier = User::select('quartier')
-            ->join('meters','users.id','=','meters.user_id')
-            ->join('readings','meters.id','=','readings.meter_id')
-            ->groupBy('quartier')
-            ->selectRaw('quartier, SUM(readings.value) as total_consumption')
+        $consumptionByQuartier = DB::table('readings')
+            ->join('meters', 'readings.meter_id', '=', 'meters.id')
+            ->join('quartiers', 'meters.quartier_id', '=', 'quartiers.id')
+            ->join('cities', 'quartiers.city_id', '=', 'cities.id')
+            ->groupBy('quartiers.id', 'quartiers.name', 'cities.name')
+            ->selectRaw('CONCAT(cities.name, " - ", quartiers.name) as quartier, SUM(readings.value) as total_consumption')
             ->get();
 
         $stats = [
@@ -129,7 +131,7 @@ class AdminController extends Controller
 
     public function exportStatsPdf() {
         $this->authorize('view_global_dashboard');
-        $data = Reading::all();
+        $data = Reading::with('meter.user')->latest()->limit(100)->get();
         $pdf = PDF::loadView('exports.readings_pdf', ['readings'=>$data]);
         return $pdf->download('readings.pdf');
     }
