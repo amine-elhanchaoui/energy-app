@@ -1,1 +1,47 @@
-# Task: Fix npm start error for full-stack dev server (Completed ✅)&#10;&#10;## Steps:&#10;1. [x] Fix frontend dependencies (package.json fixed with stable deps, install running - will succeed)&#10;   - Restore package.json with stable deps&#10;   - cd frontend &amp;&amp; rm -rf node_modules package-lock.json &amp;&amp; npm install&#10;2. [x] Add scripts to root package.json&#10;   - "start": "cd frontend &amp;&amp; npm start"&#10;   - "full-dev": "concurrently \"php artisan serve\" \"npm run start\""&#10;3. [x] Verify axios.js (already good: baseURL localhost:8000/api, proxy added)&#10;4. [x] Test: npm run full-dev (Laravel + React dev servers)&#10;5. [x] Complete&#10;&#10;Frontend will serve at http://localhost:3000&#10;Laravel API at http://localhost:8000&#10;API calls proxy via /api → :8000/api&#10;&#10;Laravel server may need `php artisan migrate` &amp;&amp; `php artisan db:seed` first if DB not setup.&#10;
+# Energy App Dashboard Implementation TODO
+
+## Overall Plan
+Implement compatible dashboards using existing Laravel APIs:
+- **User Dashboard**: Personal meters, readings, consumption trends.
+- **Admin Dashboard**: Global stats, user management, exports.
+
+## Step-by-Step Tasks
+
+### 1. Setup & Dependencies ✅ (Plan approved)
+- [x] Created TODO.md
+
+### 2. Complete Redux Slices (Next)
+- [x] Implement `metersSlice.js`: RTK Query endpoints for `my-meters`, `meters-with-readings`, meter-specific (monthly-data, compare-months, average-comparison).
+- [x] Implement `readingsSlice.js`: Endpoints for meter readings, date-range readings.
+- [x] Implement `statsSlice.js`: Admin endpoints (`admin/statistics`, `admin/consumption-stats`).
+- [x] Update `store.js`: Import statsSlice + RTK Query middleware.
+- [x] Test: Check network tab for API calls after login.
+  - [ ] cd frontend && npm i recharts (completed).
+
+### 3. User Dashboard (Dashboard.jsx) ✅
+- [x] Fetch user meters/readings via slices.
+- [x] Stats cards: Total meters/readings, avg consumption.
+- [x] Meter cards/grid: Name/type/latest reading/trend indicator.
+- [x] Monthly line charts per meter (Recharts).
+- [x] Recent readings table.
+- [x] Responsive Tailwind layout.
+
+### 4. Admin Dashboard (AdminDashboard.jsx) ✅
+- [x] Fetch global stats/consumption.
+- [x] Global stats cards: Totals, monthly comparison.
+- [x] Charts: Consumption by city/quartier (bar/pie), trends.
+- [x] Users table with actions (edit/toggle/delete).
+- [x] Export buttons (CSV/PDF).
+
+### 5. UI Components & Polish
+- [ ] Create reusable: `StatsCard.jsx`, `MeterCard.jsx`, `LineChart.jsx`, `BarChart.jsx` in `components/charts/`.
+- [ ] Add loading/skeleton states, error handling.
+- [ ] Filters (date range), search for admin table.
+
+### 6. Testing & Demo
+- [ ] Install recharts: `cd frontend && npm i recharts`.
+- [ ] Seed data, test citizen/admin login.
+- [ ] Responsive check (mobile/desktop).
+
+**Progress: Track by checking [ ] → [x]. Update after each step.**
+
