@@ -20,6 +20,17 @@ C'est très facile ! Il faut juste avoir Docker sur ton ordinateur.
    ```bash
    docker compose up --build
    ```
+## Configuration de la base de données
+
+Après avoir lancé le projet avec Docker, il faut exécuter les migrations pour créer les tables dans la base de données.
+
+1. Ouvre un nouveau terminal.
+2. Tape cette commande :
+
+```bash
+docker compose exec app php artisan migrate
+```
+
 3. Attends un peu que tout se prépare.
 4. Le site sera disponible sur : `http://localhost:3000`
 
