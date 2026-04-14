@@ -20,9 +20,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
     
-    // Routes for Meters - CRUD
-    Route::apiResource('meters', MeterController::class);
-    
     // Custom meter endpoints for citizen/user
     Route::get('/my-meters', [MeterController::class, 'getUserMeters']);
     Route::get('/meters-with-readings', [MeterController::class, 'getMetersWithReadings']);
@@ -31,13 +28,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/meters/{meterId}/monthly-data', [MeterController::class, 'getMonthlyData']);
     Route::get('/meters/{meterId}/compare-months', [MeterController::class, 'compareMonths']);
     Route::get('/meters/{meterId}/average-comparison', [MeterController::class, 'getAverageComparison']);
-    
-    // Routes for Readings - CRUD
-    Route::apiResource('readings', ReadingController::class);
+
+    // Routes for Meters - CRUD
+    Route::apiResource('meters', MeterController::class);
     
     // Custom reading endpoints
     Route::get('/meters/{meterId}/readings', [ReadingController::class, 'getMeterReadings']);
     Route::post('/meters/{meterId}/readings/by-date-range', [ReadingController::class, 'getReadingsByDateRange']);
+
+    // Routes for Readings - CRUD
+    Route::apiResource('readings', ReadingController::class);
     
     // Admin routes
     Route::middleware('role:admin')->group(function () {

@@ -1,0 +1,49 @@
+services:
+  # Laravel Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: energy-backend
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PASSWORD: root
+    networks:
+      - energy-network
+
+  # React Frontend (Vite)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: energy-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - energy-network
+
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: energy-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: energy_db
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    networks:
+      - energy-network
+
+networks:
+  energy-network:
+    driver: bridge
