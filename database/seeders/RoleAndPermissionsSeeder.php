@@ -31,7 +31,8 @@ class RoleAndPermissionsSeeder extends Seeder
 
         // Roles
         $citizen = Role::firstOrCreate(['name' => 'citoyen']);
-        $admin = Role::firstOrCreate(['name' => 'administrateur']);
+        $admin = Role::firstOrCreate(['name' => 'admin']);
+        $legacyAdmin = Role::firstOrCreate(['name' => 'administrateur']);
 
         // Assign permissions to roles
         $citizen->givePermissionTo([
@@ -43,5 +44,6 @@ class RoleAndPermissionsSeeder extends Seeder
             'export_own_data'
         ]);
         $admin->givePermissionTo(Permission::all());
+        $legacyAdmin->givePermissionTo(Permission::all());
     }
 }

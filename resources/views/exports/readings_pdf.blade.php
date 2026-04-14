@@ -12,7 +12,7 @@
         .header {
             text-align: center;
             margin-bottom: 30px;
-            border-bottom: 2px solid #4CAF50;
+            border-bottom: 3px solid #0ea5e9;
             padding-bottom: 15px;
         }
         .header h1 {
@@ -30,7 +30,7 @@
             margin-top: 20px;
         }
         thead {
-            background-color: #4CAF50;
+            background-color: #0f766e;
             color: white;
         }
         th {
@@ -60,7 +60,8 @@
         .summary {
             margin-top: 20px;
             padding: 15px;
-            background-color: #ecf0f1;
+            background-color: #ecfeff;
+            border: 1px solid #bae6fd;
             border-radius: 4px;
         }
         .summary h3 {
@@ -74,7 +75,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>Energy Readings Report</h1>
+        <h1>Energy Consumption Report</h1>
         <p>Generated on {{ now()->format('d/m/Y H:i:s') }}</p>
     </div>
 
@@ -85,7 +86,7 @@
                 <th>Meter ID</th>
                 <th>User Name</th>
                 <th>Meter Type</th>
-                <th>Consumption Value</th>
+                <th>Consumption Value (Unit)</th>
                 <th>Date</th>
             </tr>
         </thead>
@@ -115,7 +116,7 @@
 
     @if($readings->count() > 0)
         <div class="summary">
-            <h3>Summary Statistics</h3>
+            <h3>Summary Statistics (Last 100 Readings)</h3>
             <p><strong>Total Readings:</strong> {{ $readings->count() }}</p>
             <p><strong>Total Consumption:</strong> {{ number_format($readings->sum('value'), 2) }} @if($readings->first()?->meter?->unit){{ $readings->first()?->meter?->unit }}@endif</p>
             <p><strong>Average Consumption:</strong> {{ number_format($readings->avg('value'), 2) }} @if($readings->first()?->meter?->unit){{ $readings->first()?->meter?->unit }}@endif</p>

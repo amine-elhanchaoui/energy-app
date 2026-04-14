@@ -11,10 +11,21 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Support\RoleResolver;
+use App\Services\MeterService;
 
 class MeterController extends Controller
 {
     use AuthorizesRequests;
+
+    public function __construct(private MeterService $meterService)
+    {
+    }
+
+    private function isAdmin($user): bool
+    {
+        return RoleResolver::isAdmin($user);
+    }
 
     /**
      * Get all meters (filtered by user if citizen)
@@ -23,7 +34,7 @@ class MeterController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->hasRole('admin')) {
+        if ($this->isAdmin($user)) {
             // get all meters with user and quartier info, and count of readings and monthly consumptions
             $meters = Meter::with([
                 'user:id,name,email',
@@ -52,7 +63,7 @@ class MeterController extends Controller
     {
         $user = Auth::user();
 
-        $meters = Meter::where('user_id', $user->id)
+        $meters = $this->meterService->meterQueryForUser($user)
             ->with([
                 // we using this way because meter has many readings, and we want to get only the latest reading for each meter, so we can show it in the dashboard without loading all readings which can be heavy.
                 'readings' => function ($query) {
@@ -69,21 +80,9 @@ class MeterController extends Controller
                 },
                 'monthlyConsumptions'
             ])
-            ->get()
-            // map is a method like foreach but it returns a new collection with the modified data, we can use it to format the response as we want, for example to include only the latest reading value and date, and count of readings, etc.
-            ->map(function ($meter) {
-                return [
-                    'id' => $meter->id,
-                    'name' => $meter->name,
-                    'type' => $meter->type,
-                    'unit' => $meter->unit,
-                    'location' => $meter->location,
-                    'latest_reading' => $meter->readings->first()?->value,
-                    'latest_reading_date' => $meter->readings->first()?->date,
-                    'total_readings' => $meter->readings->count(),
-                ];
-                // this function returns a formatted array for each meter, including only the latest reading value and date, and count of readings, which is more efficient than returning all readings and letting the frontend handle it.
-            });
+            ->get();
+
+        $meters = $this->meterService->formatUserMeters($meters);
 
         return response()->json($meters);
 
@@ -148,16 +147,11 @@ class MeterController extends Controller
             'type' => 'required|in:electricity,gas,water',
             'unit' => 'required|in:kWh,m³,liters',
             'location' => 'nullable|string|max:255',
-            'quartier_id' => 'required|exists:quartiers,id',
+            'quartier_id' => 'nullable|exists:quartiers,id',
             'user_id' => 'sometimes|exists:users,id',
         ]);
 
-        // If user_id not provided, use authenticated user's ID (for citizens)
-        if (!isset($validated['user_id'])) {
-            $validated['user_id'] = Auth::id();
-        }
-
-        $meter = Meter::create($validated);
+        $meter = $this->meterService->createMeter($validated, Auth::user());
 
         return response()->json(
             $meter->load(['user:id,name,email', 'quartier:id,name']),
@@ -349,8 +343,7 @@ class MeterController extends Controller
     public function getMetersWithReadings()
     {
         $user = Auth::user();
-
-        $meters = Meter::where('user_id', $user->id)
+        $meters = $this->meterService->meterQueryForUser($user)
             ->with([
                 'readings' => function ($query) {
                     $query->latest('date')->limit(10);
@@ -359,28 +352,9 @@ class MeterController extends Controller
                     $query->latest('month')->limit(6);
                 }
             ])
-            ->get()
-            // map take each meter and transform it to include only the necessary data for the dashboard, like latest reading value and date, count of readings, and monthly consumption data for the last 6 months.
-            ->map(function ($meter) {
-                return [
-                    'id' => $meter->id,
-                    'name' => $meter->name,
-                    'type' => $meter->type,
-                    'unit' => $meter->unit,
-                    'location' => $meter->location,
-                    'readings_count' => $meter->readings->count(),
-                    'last_reading' => [
-                        'value' => $meter->readings->first()?->value,
-                        'date' => $meter->readings->first()?->date,
-                    ],
-                    'monthly_data' => $meter->monthlyConsumptions->map(function ($mc) {
-                        return [
-                            'month' => $mc->month,
-                            'value' => $mc->consumption_value,
-                        ];
-                    }),
-                ];
-            });
+            ->get();
+
+        $meters = $this->meterService->formatMetersWithReadings($meters);
 
         return response()->json($meters);
     }
@@ -390,7 +364,8 @@ class MeterController extends Controller
      */
     public function getConsumptionStatistics()
     {
-        Auth::user()->hasRole('admin') || abort(403);
+        $user = Auth::user();
+        $this->isAdmin($user) || abort(403);
 
         $currentDate = Carbon::now();
         $previousDate = $currentDate->copy()->subMonth();

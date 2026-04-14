@@ -9,7 +9,7 @@ class Meter extends Model
     //
     protected $fillable = [
         'user_id',
-        'quarter_id',
+        'quartier_id',
         'name',
         'type',
         'location',

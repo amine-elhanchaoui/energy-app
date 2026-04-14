@@ -50,6 +50,8 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'city_id' => $user->city_id,
+                'quartier' => $user->quartier,
                 'roles' => $user->getRoleNames(),
             ],
             'token' => $token,
@@ -75,6 +77,12 @@ class AuthController extends Controller
             ]);
         }
 
+        if (!$user->is_active) {
+            throw ValidationException::withMessages([
+                'email' => ['your account is inactive, contact administrator'],
+            ]);
+        }
+
         // delete old token
         $user->tokens()->delete();
 
@@ -89,6 +97,8 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'city_id' => $user->city_id,
+                'quartier' => $user->quartier,
                 'roles' => $user->getRoleNames(),
                 'permissions' => $user->getAllPermissions()->pluck('name'),
             ],
@@ -118,6 +128,10 @@ class AuthController extends Controller
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
+            'city_id' => $user->city_id,
+            'quartier' => $user->quartier,
+            'house_number' => $user->house_number,
+            'phone' => $user->phone,
             'address' => $user->address,
             'roles' => $user->getRoleNames(),
             'permissions' => $user->getAllPermissions()->pluck('name'),

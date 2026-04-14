@@ -20,8 +20,7 @@ class DatabaseSeeder extends Seeder
             CitySeeder::class,
             RoleAndPermissionsSeeder::class,
             CityQuartierSeeder::class,
-
-              
+            DemoDataSeeder::class,
         ]);
 
         // User::factory(10)->create();

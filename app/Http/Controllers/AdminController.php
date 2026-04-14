@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ReadingsExport;
-use Barryvdh\DomPDF\Facade\PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AdminController extends Controller
 {
@@ -76,8 +76,8 @@ class AdminController extends Controller
     
     // toggle(changing) user active/inactive status
     public function toggleUserStatus($id){
-        $this->authorize('update', User::class);
         $user = User::findOrFail($id);
+        $this->authorize('update', $user);
         $user->is_active = !$user->is_active;
         $user->save();
         return response()->json(['message'=>'User status updated', 'is_active'=>$user->is_active]);
@@ -126,13 +126,13 @@ class AdminController extends Controller
     // export readings to CSV and PDF
     public function exportReadingsCsv() {
         $this->authorize('view_global_dashboard');
-        return Excel::download(new ReadingsExport, 'readings.csv');
+        return Excel::download(new ReadingsExport, 'energy_readings_'.now()->format('Y_m_d_His').'.csv');
     }
 
     public function exportStatsPdf() {
         $this->authorize('view_global_dashboard');
         $data = Reading::with('meter.user')->latest()->limit(100)->get();
-        $pdf = PDF::loadView('exports.readings_pdf', ['readings'=>$data]);
-        return $pdf->download('readings.pdf');
+        $pdf = Pdf::loadView('exports.readings_pdf', ['readings'=>$data]);
+        return $pdf->download('energy_report_'.now()->format('Y_m_d_His').'.pdf');
     }
 }

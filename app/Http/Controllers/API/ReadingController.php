@@ -5,16 +5,24 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Reading;
 use App\Models\Meter;
-use App\Models\MonthlyConsumption;
+use App\Services\ReadingService;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Storage;
+use App\Support\RoleResolver;
 
 class ReadingController extends Controller
 {
     use AuthorizesRequests;
+
+    public function __construct(private ReadingService $readingService)
+    {
+    }
+
+    private function isAdmin($user): bool
+    {
+        return RoleResolver::isAdmin($user);
+    }
 
     /**
      * Get all readings (filtered by user's meters if citizen)
@@ -23,7 +31,7 @@ class ReadingController extends Controller
     {
         $user = Auth::user();
         
-        if ($user->hasRole('admin')) {
+        if ($this->isAdmin($user)) {
             $readings = Reading::with(['meter.user', 'meter.quartier'])
                 ->latest('date')
                 ->paginate(50);
@@ -60,6 +68,8 @@ class ReadingController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Reading::class);
+
         $validated = $request->validate([
             'meter_id' => 'required|exists:meters,id',
             'date' => 'required|date',
@@ -69,22 +79,7 @@ class ReadingController extends Controller
 
         $meter = Meter::findOrFail($validated['meter_id']);
         $this->authorize('view', $meter);
-
-        // Handle photo upload
-        $photoPath = null;
-        if ($request->hasFile('photo')) {
-            $photoPath = $request->file('photo')->store('readings', 'public');
-        }
-
-        $reading = Reading::create([
-            'meter_id' => $validated['meter_id'],
-            'date' => $validated['date'],
-            'value' => $validated['value'],
-            'photo_path' => $photoPath,
-        ]);
-
-        // Automatically calculate monthly consumption
-        $this->updateMonthlyConsumption($meter, $validated['date']);
+        $reading = $this->readingService->createReading($request, $validated);
 
         return response()->json(
             // we use load here tp get the related user and quartier data for the meter after creating the reading, so that we can return all the necessary information in the response.
@@ -99,7 +94,6 @@ class ReadingController extends Controller
     public function update(Request $request, $id)
     {
         $reading = Reading::findOrFail($id);
-        $meter = Meter::findOrFail($reading->meter_id);
         $this->authorize('update', $reading);
 
         $validated = $request->validate([
@@ -109,26 +103,7 @@ class ReadingController extends Controller
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Handle photo upload
-        if ($request->hasFile('photo')) {
-            // Delete old photo if exists
-            if ($reading->photo_path) {
-                // storage::disk('public') is used to access the public disk defined in the filesystems.php configuration file, and delete method is used to delete the file at the specified path. This ensures that when a new photo is uploaded for a reading, the old photo is removed from storage to free up space and avoid orphaned files.
-                Storage::disk('public')->delete($reading->photo_path);
-            }
-            $validated['photo_path'] = $request->file('photo')->store('readings', 'public');
-        }
-
-        $oldDate = $reading->date;
-        $reading->update($validated);
-
-        // Recalculate monthly consumption for both old and new dates
-        if (isset($validated['date']) && $oldDate != $validated['date']) {
-            // we recalculate the monthly consumption for the old date to ensure that if the reading's date was changed, we update the consumption for the month of the old date as well, since it might affect the consumption calculation for that month.
-            $this->updateMonthlyConsumption($meter, $oldDate);
-        }
-        // automatically calculate monthly consumption for the new date (or the same date if it wasn't changed) !!this function is below in the same controller for this reason we use "$this->updateMonthlyConsumption" to call it!!
-        $this->updateMonthlyConsumption($meter, $reading->date);
+        $reading = $this->readingService->updateReading($request, $reading, $validated);
 
         return response()->json(
             $reading->load(['meter.user', 'meter.quartier'])
@@ -141,19 +116,8 @@ class ReadingController extends Controller
     public function destroy($id)
     {
         $reading = Reading::findOrFail($id);
-        $meter = Meter::findOrFail($reading->meter_id);
         $this->authorize('delete', $reading);
-
-        // Delete photo if exists
-        if ($reading->photo_path) {
-            Storage::disk('public')->delete($reading->photo_path);
-        }
-
-        $readingDate = $reading->date;
-        $reading->delete();
-
-        // 
-        $this->updateMonthlyConsumption($meter, $readingDate);
+        $this->readingService->deleteReading($reading);
 
         return response()->json(['message' => 'Reading deleted successfully']);
     }
@@ -218,46 +182,4 @@ class ReadingController extends Controller
         ]);
     }
 
-    /**
-     * Update monthly consumption for a meter
-     * This method calculates the total consumption for a given month
-     */
-    private function updateMonthlyConsumption(Meter $meter, $date)
-    {
-        $date = Carbon::parse($date);
-        $month = $date->startOfMonth();
-
-        // Get all readings for this month
-        $readings = Reading::where('meter_id', $meter->id)
-            ->whereYear('date', $month->year)
-            ->whereMonth('date', $month->month)
-            // we order the readings by date to make a cronoloical order to be able to calculate the consumption as the difference between the last and first reading of the month.
-            ->get();
-
-        if ($readings->count() > 0) {
-            // Calculate consumption as difference between last and first reading
-            $firstValue = $readings->first()->value;
-            $lastValue = $readings->last()->value;
-            $consumption = $lastValue - $firstValue;
-
-            // Ensure consumption is not negative
-            $consumption = max(0, $consumption);
-
-            // Update or create monthly consumption record
-            MonthlyConsumption::updateOrCreate(
-                [
-                    'meter_id' => $meter->id,
-                    'month' => $month,
-                ],
-                [
-                    'consumption_value' => $consumption,
-                ]
-            );
-        } else {
-            // Delete monthly consumption if no readings exist
-            MonthlyConsumption::where('meter_id', $meter->id)
-                ->where('month', $month)
-                ->delete();
-        }
-    }
 }

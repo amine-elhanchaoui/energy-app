@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use App\Support\RoleResolver;
 
 class CheckRole
 {
@@ -19,6 +20,10 @@ class CheckRole
         }
 
         foreach ($roles as $role) {
+            if ($role === 'admin' && RoleResolver::isAdmin($user)) {
+                return $next($request);
+            }
+
             if ($user->hasRole($role)) {
                 return $next($request);
             }
