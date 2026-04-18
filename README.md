@@ -28,7 +28,7 @@ Après avoir lancé le projet avec Docker, il faut exécuter les migrations pour
 2. Tape cette commande :
 
 ```bash
-docker compose exec app php artisan migrate
+docker compose exec app php artisan migrate && php artisan db:seed
 ```
 
 3. Attends un peu que tout se prépare.
