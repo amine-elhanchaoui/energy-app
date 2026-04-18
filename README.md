@@ -77,7 +77,7 @@ docker exec -it energy-backend php artisan migrate --seed
 
 | Espace Admin | Dashboard Admin |
 | :---: | :---: |
-| ![Espace Admin](storage/app/public/Adminspace.png) | ![Dashboard Admin](storage/app/public/AdminDashboard.png) |
+| ![Espace Admin](public/img/Adminspace.png) | ![Dashboard Admin](public/img/AdminDashboard.png) |
 
 ---
 
