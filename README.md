@@ -1,43 +1,90 @@
-# Mon Projet d'Énergie ⚡
+# ⚡ EnergyApp - Suivi de Consommation Énergétique
 
-Bonjour ! C'est mon projet pour suivre la consommation d'énergie (électricité, eau, gaz). C'est un projet simple fait avec Laravel et React.
+Bienvenue sur **EnergyApp** ! 🌿
+Il s'agit d'une application simple et efficace pour suivre et gérer votre consommation d'énergie (électricité, eau, gaz). Le but est d'aider les citoyens à mieux comprendre leurs dépenses énergétiques.
 
-## C'est quoi ce projet ?
-Ce projet aide les gens à voir combien d'énergie ils utilisent. On peut ajouter des compteurs et noter les lectures chaque mois.
+---
 
-## Les technologies
+## 🎯 Objectif du Projet
+
+Le projet a un but simple : **aider les gens à économiser de l'énergie.**
+Avec cette application, vous pouvez :
+- Enregistrer vos compteurs.
+- Suivre votre consommation mois par mois.
+- Voir des statistiques claires pour réduire vos factures.
+
+---
+
+## 🛠️ Technologies Utilisées
+
+Nous utilisons des technologies modernes mais simples pour ce projet :
+
 - **Backend** : Laravel (PHP)
-- **Frontend** : React avec Vite
+- **Frontend** : React (JavaScript)
 - **Base de données** : MySQL
-- **Docker** : Pour lancer le projet facilement
+- **Docker** : Pour lancer le projet facilement sur n'importe quel ordinateur.
 
-## Comment lancer le projet avec Docker
+---
 
-C'est très facile ! Il faut juste avoir Docker sur ton ordinateur.
+## 🚀 Installation (Guide pas à pas)
 
-1. Ouvre ton terminal dans le dossier du projet.
-2. Tape cette commande :
-   ```bash
-   docker compose up --build
-   ```
-## Configuration de la base de données
+Suivez ces étapes pour lancer le projet sur votre ordinateur :
 
-Après avoir lancé le projet avec Docker, il faut exécuter les migrations pour créer les tables dans la base de données.
-
-1. Ouvre un nouveau terminal.
-2. Tape cette commande :
-
+### 1. Cloner le projet
+Ouvrez votre terminal et tapez :
 ```bash
-docker compose exec app php artisan migrate && php artisan db:seed
+git clone https://github.com/votre-user/energy-app.git
+cd energy-app
 ```
 
-3. Attends un peu que tout se prépare.
-4. Le site sera disponible sur : `http://localhost:3000`
+### 2. Lancer les conteneurs Docker
+Lancez Docker Desktop, puis tapez cette commande :
+```bash
+docker compose up -d --build
+```
+*Note : Attendez quelques minutes pour la première installation.*
 
-## Ce que le projet fait (Fonctions)
-- On peut créer un compte et se connecter.
-- On peut ajouter ses compteurs d'énergie.
-- On peut voir des graphiques simples de sa consommation.
-- Il y a une partie Admin pour voir tout le système.
+### 3. Lancer la base de données (Migrations & Seed)
+Pour créer les tables et les données initiales, tapez :
+```bash
+docker exec -it energy-backend php artisan migrate --seed
+```
 
-C'est mon premier "vrai" projet, j'espère que c'est bien ! 😊
+### 4. Accéder à l'application
+- **Frontend (Site web)** : [http://localhost:3000](http://localhost:3000)
+- **Backend (API)** : [http://localhost:8000](http://localhost:8000)
+
+---
+
+## ✨ Fonctionnalités
+
+### 👤 Pour les Citoyens
+- **Inscription & Connexion** : Créez votre compte personnel.
+- **Gestion des Compteurs** : Ajoutez vos compteurs (Électricité, Eau, Gaz).
+- **Saisie de Consommation** : Notez vos index chaque mois.
+- **Tableau de Bord** : Visualisez vos graphiques de consommation.
+
+### 🔑 Pour les Administrateurs
+- **Gestion des Utilisateurs** : Voir la liste des inscrits.
+- **Statistiques Globales** : Voir la consommation totale de la ville.
+- **Configuration** : Gérer les types de compteurs et les tarifs.
+
+---
+
+## 📸 Captures d'écran
+
+*(Les images arrivent bientôt !)*
+
+| Accueil | Tableau de Bord |
+| :---: | :---: |
+| ![Placeholder - Page Accueil](https://via.placeholder.com/400x250?text=Page+Accueil) | ![Placeholder - Dashboard](https://via.placeholder.com/400x250?text=Dashboard) |
+
+---
+
+## 👨‍💻 Auteur
+
+Ce projet a été réalisé avec ❤️ par :
+- **Amine** - *Développeur Fullstack Junior*
+
+---
+*Si vous aimez ce projet, n'hésitez pas à mettre une ⭐ sur GitHub !*
