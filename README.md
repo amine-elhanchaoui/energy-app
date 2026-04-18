@@ -33,7 +33,7 @@ Suivez ces étapes pour lancer le projet sur votre ordinateur :
 ### 1. Cloner le projet
 Ouvrez votre terminal et tapez :
 ```bash
-git clone https://github.com/votre-user/energy-app.git
+git clone https://github.com/amine-elhanchaoui/energy-app.git
 cd energy-app
 ```
 
