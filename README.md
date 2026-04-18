@@ -75,9 +75,9 @@ docker exec -it energy-backend php artisan migrate --seed
 
 *(Les images arrivent bientôt !)*
 
-| Accueil | Tableau de Bord |
+| Espace Admin | Dashboard Admin |
 | :---: | :---: |
-| ![Placeholder - Page Accueil](https://via.placeholder.com/400x250?text=Page+Accueil) | ![Placeholder - Dashboard](https://via.placeholder.com/400x250?text=Dashboard) |
+| ![Espace Admin](storage/app/public/Adminspace.png) | ![Dashboard Admin](storage/app/public/AdminDashboard.png) |
 
 ---
 
