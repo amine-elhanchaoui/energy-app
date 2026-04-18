@@ -79,12 +79,6 @@ docker exec -it energy-backend php artisan migrate --seed
 | :---: | :---: |
 | ![Espace Admin](public/img/Adminspace.png) | ![Dashboard Admin](public/img/AdminDashboard.png) |
 
----
-
-## 👨‍💻 Auteur
-
-Ce projet a été réalisé avec ❤️ par :
-- **Amine** - *Développeur Fullstack Junior*
 
 ---
 *Si vous aimez ce projet, n'hésitez pas à mettre une ⭐ sur GitHub !*
