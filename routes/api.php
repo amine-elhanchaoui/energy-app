@@ -4,6 +4,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\MeterController;
 use App\Http\Controllers\API\ReadingController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ZoneController;
 use Illuminate\Support\Facades\Route;
 
 // public routes
@@ -52,5 +53,17 @@ Route::middleware('auth:sanctum')->group(function () {
         
         Route::get('/admin/readings/export-csv', [AdminController::class, 'exportReadingsCsv']);
         Route::get('/admin/readings/export-pdf', [AdminController::class, 'exportStatsPdf']);
+
+        Route::get('/admin/cities', [ZoneController::class, 'cities']);
+        Route::post('/admin/cities', [ZoneController::class, 'storeCity']);
+        Route::get('/admin/cities/{id}', [ZoneController::class, 'showCity']);
+        Route::put('/admin/cities/{id}', [ZoneController::class, 'updateCity']);
+        Route::delete('/admin/cities/{id}', [ZoneController::class, 'destroyCity']);
+
+        Route::get('/admin/quartiers', [ZoneController::class, 'quartiers']);
+        Route::post('/admin/quartiers', [ZoneController::class, 'storeQuartier']);
+        Route::get('/admin/quartiers/{id}', [ZoneController::class, 'showQuartier']);
+        Route::put('/admin/quartiers/{id}', [ZoneController::class, 'updateQuartier']);
+        Route::delete('/admin/quartiers/{id}', [ZoneController::class, 'destroyQuartier']);
     });
 });

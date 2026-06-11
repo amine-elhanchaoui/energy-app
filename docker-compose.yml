@@ -14,9 +14,9 @@ services:
       DB_HOST: db
       DB_DATABASE: energy_db
       DB_USERNAME: root
-      DB_PASSWORD: root
     networks:
       - energy-network
+    command: sh -c "php artisan migrate --force --seed && apache2-foreground"
 
   frontend:
     build:
